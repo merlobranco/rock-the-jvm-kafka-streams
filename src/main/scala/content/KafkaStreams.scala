@@ -8,6 +8,7 @@ import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.scala.StreamsBuilder
 import org.apache.kafka.streams.scala.kstream.KStream
 import org.apache.kafka.streams.scala.serialization.Serdes
+import org.apache.kafka.streams.scala.ImplicitConversions._
 
 
 object KafkaStreams {
