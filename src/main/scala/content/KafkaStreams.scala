@@ -5,8 +5,9 @@ import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
 import org.apache.kafka.common.serialization.Serde
+import org.apache.kafka.streams.kstream.GlobalKTable
 import org.apache.kafka.streams.scala.StreamsBuilder
-import org.apache.kafka.streams.scala.kstream.KStream
+import org.apache.kafka.streams.scala.kstream.{KStream, KTable}
 import org.apache.kafka.streams.scala.serialization.Serdes
 import org.apache.kafka.streams.scala.ImplicitConversions._
 
@@ -61,8 +62,23 @@ object KafkaStreams {
   // Topology. Describes how the data flows through the stream
   val builder = new StreamsBuilder()
 
-  // KStream
+  // KStream (Linear kafka stream)
   val usersOrdersStream: KStream[UserId, Order] = builder.stream[UserId, Order](OrdersByUserTopic)
+
+  // KTable: like KStream, except the elements that "flows" through the stream are a little more static in the sense that they are
+  // kept inside the topic using a time to live policy and they are corresponding to a topic that we call compacted.
+  // Compacted means that elements that flow through that topic are maintained inside the broker
+
+  val userProfileTable: KTable[UserId, Profile] = builder.table[UserId, Profile](DiscountProfilesByUserTopic)
+
+  // GlobalKTable
+  // Keeping in mind that each topic has partitions.
+  // While the KTable is distributed between the nodes in the kafka cluster
+  // the GlobalKTable is not distributed but rather copied to all the nodes in the cluster
+  // Useful for performance purposes since the GlobalKTable will be faster than the KTable, since the GlobalKTable is already on memory
+  // The GlobalKTable is going to be useful as long as we store a few values inside
+  val discountProfilesGTable: GlobalKTable[Profile, Discount] = builder.globalTable[Profile, Discount](DiscountsTopic)
+
 
   builder.build()
 
